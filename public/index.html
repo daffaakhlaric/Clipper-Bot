@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipForge AI v2 — YouTube Clipping Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #09090f;
+  --bg2:      #0f0f1a;
+  --bg3:      #16161f;
+  --card:     #111119;
+  --border:   #222230;
+  --border2:  #2d2d3d;
+  --accent:   #ff4500;
+  --accent2:  #ff7a3d;
+  --cyan:     #00e5a0;
+  --gold:     #ffd166;
+  --purple:   #9b6dff;
+  --text:     #eeeeff;
+  --muted:    #5a5a72;
+  --muted2:   #3a3a50;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* grid bg */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,69,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,69,0,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+/* ── Header ── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 40px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(9,9,15,0.92);
+  backdrop-filter: blur(16px);
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+}
+.logo .accent { color: var(--accent); }
+.logo .v { font-size: 10px; color: var(--muted); font-weight: 400; margin-left: 4px; vertical-align: super; }
+.badge-new {
+  background: var(--accent); color: white;
+  font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+  margin-left: 8px; letter-spacing: 0.5px;
+  font-family: 'DM Mono', monospace;
+}
+.header-right { display: flex; gap: 16px; align-items: center; }
+.nav-tab {
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  padding: 6px 14px; border-radius: 8px;
+  border: 1px solid transparent;
+  color: var(--muted); transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.nav-tab:hover { color: var(--text); border-color: var(--border2); }
+.nav-tab.active {
+  color: var(--text); background: var(--bg3); border-color: var(--border2);
+}
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 20px;
+  background: var(--bg3); border: 1px solid var(--border);
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.dot.on { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+
+/* ── Pages ── */
+.page { display: none; max-width: 1100px; margin: 0 auto; padding: 40px; position: relative; z-index: 1; }
+.page.active { display: block; }
+
+/* ── Hero ── */
+.hero { text-align: center; margin-bottom: 48px; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--accent); border: 1px solid rgba(255,69,0,0.3);
+  padding: 4px 12px; border-radius: 20px; margin-bottom: 20px;
+  background: rgba(255,69,0,0.06);
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 800; line-height: 1.05; letter-spacing: -2px;
+  margin-bottom: 14px;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p { color: var(--muted); font-size: 15px; max-width: 420px; margin: 0 auto; line-height: 1.7; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.card-label {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* ── Input row ── */
+.url-row { display: flex; gap: 10px; margin-bottom: 18px; }
+.url-input {
+  flex: 1; background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 12px 16px;
+  font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text);
+  outline: none; transition: border-color 0.2s;
+}
+.url-input:focus { border-color: var(--accent); }
+.url-input::placeholder { color: var(--muted2); }
+
+.btn {
+  border-radius: 10px; padding: 12px 22px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.18s; border: none;
+  font-family: 'Syne', sans-serif; white-space: nowrap;
+}
+.btn-fire { background: var(--accent); color: white; }
+.btn-fire:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-fire:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.btn-cyan { background: var(--cyan); color: #08120e; }
+.btn-cyan:hover { filter: brightness(1.1); }
+.btn-cyan:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+.btn-purple { background: var(--purple); color: white; }
+.btn-purple:hover { filter: brightness(1.1); }
+
+/* ── Strategy pills ── */
+.pill-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.pill-lbl { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+.pill {
+  padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.18s;
+}
+.pill:hover { border-color: var(--accent); color: var(--accent); }
+.pill.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* ── Output options row ── */
+.opt-row {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  padding-top: 16px; border-top: 1px solid var(--border);
+  align-items: center;
+}
+.opt-group { display: flex; align-items: center; gap: 8px; }
+.opt-label { font-size: 12px; color: var(--muted); }
+.format-pill {
+  padding: 4px 12px; border-radius: 20px;
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--muted); font-size: 11px; cursor: pointer;
+  font-family: 'DM Mono', monospace; transition: all 0.18s;
+}
+.format-pill:hover { border-color: var(--purple); color: var(--purple); }
+.format-pill.active { background: var(--purple); border-color: var(--purple); color: white; }
+.toggle-wrap { display: flex; align-items: center; gap: 7px; }
+.toggle {
+  width: 36px; height: 20px; border-radius: 10px; background: var(--bg3);
+  border: 1px solid var(--border2); cursor: pointer; position: relative;
+  transition: background 0.2s;
+}
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--muted); transition: all 0.2s;
+}
+.toggle.on { background: rgba(0,229,160,0.2); border-color: var(--cyan); }
+.toggle.on::after { left: 18px; background: var(--cyan); }
+
+/* ── Progress ── */
+.progress-card { display: none; }
+.progress-card.visible { display: block; }
+.prog-top { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.prog-lbl { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); }
+.prog-pct { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+.prog-bg { background: var(--bg3); border-radius: 3px; height: 3px; overflow: hidden; }
+.prog-fill {
+  height: 100%; border-radius: 3px; transition: width 0.5s ease;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  width: 0%;
+}
+
+/* ── Video info banner ── */
+.video-banner {
+  display: none; flex-direction: row; gap: 16px; align-items: center;
+}
+.video-banner.visible { display: flex; }
+.vthumb { width: 130px; height: 74px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border); }
+.vmeta h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+.vtags { display: flex; gap: 6px; flex-wrap: wrap; }
+.vtag {
+  padding: 2px 9px; border-radius: 6px; font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  background: var(--bg3); color: var(--muted); border: 1px solid var(--border);
+}
+.vtag.g { color: var(--cyan); border-color: rgba(0,229,160,0.3); background: rgba(0,229,160,0.06); }
+
+/* ── Clip grid ── */
+.clips-section { display: none; }
+.clips-section.visible { display: block; }
+.sec-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.sec-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+.sec-actions { display: flex; gap: 8px; }
+
+.clips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px; margin-bottom: 20px;
+}
+.clip-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px; cursor: pointer;
+  transition: all 0.18s; position: relative; overflow: hidden;
+}
+.clip-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.clip-card.selected { border-color: var(--accent); background: rgba(255,69,0,0.04); }
+.clip-chk {
+  position: absolute; top: 12px; right: 12px;
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; transition: all 0.18s;
+}
+.clip-card.selected .clip-chk { background: var(--accent); border-color: var(--accent); color: white; }
+.clip-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 7px; }
+.clip-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 6px; padding-right: 26px; line-height: 1.3; }
+.clip-hook { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+.clip-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.ctag {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  padding: 2px 7px; border-radius: 4px;
+}
+.ctag-time { color: var(--accent); background: rgba(255,69,0,0.1); }
+.ctag-cat { color: var(--cyan); background: rgba(0,229,160,0.08); }
+.ctag-vs { margin-left: auto; }
+.vs-high { color: var(--gold); }
+.vs-med { color: var(--accent2); }
+.vs-low { color: var(--muted); }
+.platforms { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+.ptag {
+  font-size: 9px; padding: 2px 6px; border-radius: 4px;
+  background: var(--bg3); color: var(--muted); border: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+}
+.caption-box {
+  margin-top: 10px; padding: 8px 10px;
+  background: var(--bg3); border-radius: 8px;
+  font-size: 10px; color: var(--muted); line-height: 1.5;
+  display: none;
+}
+.clip-card.selected .caption-box { display: block; }
+
+/* ── Download section ── */
+.dl-section { display: none; }
+.dl-section.visible { display: block; }
+.dl-card {
+  background: var(--card); border: 1px solid rgba(0,229,160,0.25);
+  border-radius: 18px; padding: 24px;
+}
+.dl-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.dl-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+.dl-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.dl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.dl-item {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.dl-info { min-width: 0; }
+.dl-name { font-size: 11px; color: var(--text); font-family: 'DM Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-meta { font-size: 10px; color: var(--muted); margin-top: 2px; display: flex; gap: 6px; }
+.dl-badge {
+  font-size: 9px; padding: 1px 5px; border-radius: 3px;
+  font-family: 'DM Mono', monospace;
+}
+.dl-badge.v { background: rgba(155,109,255,0.15); color: var(--purple); }
+.dl-badge.s { background: rgba(0,229,160,0.1); color: var(--cyan); }
+.btn-dl {
+  background: var(--cyan); color: #08120e; border: none;
+  border-radius: 7px; padding: 6px 12px; font-size: 11px; font-weight: 700;
+  cursor: pointer; text-decoration: none; flex-shrink: 0;
+  font-family: 'Syne', sans-serif; transition: filter 0.18s;
+}
+.btn-dl:hover { filter: brightness(1.1); }
+
+/* ══════════════════════════════════
+   BATCH PAGE
+══════════════════════════════════ */
+.batch-hero { margin-bottom: 32px; }
+.batch-hero h2 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
+.batch-hero p { color: var(--muted); font-size: 14px; }
+
+.url-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.url-entry {
+  display: flex; gap: 8px; align-items: center;
+}
+.url-num {
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);
+  width: 22px; text-align: right; flex-shrink: 0;
+}
+.url-entry .url-input { font-size: 12px; }
+.btn-rm {
+  background: transparent; border: none; color: var(--muted2);
+  font-size: 16px; cursor: pointer; padding: 4px 6px;
+  transition: color 0.18s; flex-shrink: 0;
+}
+.btn-rm:hover { color: var(--accent); }
+.add-url-row { display: flex; justify-content: space-between; align-items: center; }
+.url-counter { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+/* Batch jobs table */
+.batch-results { display: none; }
+.batch-results.visible { display: block; }
+.batch-table { width: 100%; border-collapse: collapse; }
+.batch-table th {
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted);
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.batch-table td {
+  padding: 12px; border-bottom: 1px solid var(--border);
+  font-size: 12px; vertical-align: middle;
+}
+.batch-table tr:last-child td { border-bottom: none; }
+.batch-thumb { width: 64px; height: 36px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); }
+.status-badge {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  padding: 3px 8px; border-radius: 5px; display: inline-block;
+}
+.sb-pending { color: var(--muted); background: var(--bg3); }
+.sb-analyzing { color: var(--gold); background: rgba(255,209,102,0.1); }
+.sb-analyzed { color: var(--cyan); background: rgba(0,229,160,0.08); }
+.sb-clipping { color: var(--purple); background: rgba(155,109,255,0.1); }
+.sb-clipped { color: var(--cyan); background: rgba(0,229,160,0.12); }
+.sb-error { color: var(--accent); background: rgba(255,69,0,0.1); }
+.mini-prog { width: 80px; height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 6px; }
+.mini-prog-fill { height: 100%; background: var(--purple); border-radius: 2px; transition: width 0.4s; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 11px 18px;
+  font-size: 12px; z-index: 999;
+  transform: translateY(60px); opacity: 0; transition: all 0.3s;
+  font-family: 'DM Mono', monospace;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+@media (max-width: 640px) {
+  .page { padding: 20px 14px; }
+  header { padding: 14px 16px; }
+  .url-row { flex-direction: column; }
+  .clips-grid { grid-template-columns: 1fr; }
+  .dl-grid { grid-template-columns: 1fr; }
+  .nav-tab span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="logo">Clip<span class="accent">Forge</span> <span class="v">v2</span></div>
+    <span class="badge-new">NEW</span>
+  </div>
+  <div class="header-right">
+    <button class="nav-tab active" onclick="showPage('single',this)">⚡ <span>Single</span></button>
+    <button class="nav-tab" onclick="showPage('batch',this)">📦 <span>Batch</span></button>
+    <div class="status-pill"><div class="dot" id="dot"></div><span id="statusTxt">checking…</span></div>
+  </div>
+</header>
+
+<!-- ══ PAGE: SINGLE ══ -->
+<div class="page active" id="page-single">
+
+  <div class="hero">
+    <div class="hero-eyebrow">🤖 Claude AI · FFmpeg · yt-dlp</div>
+    <h1>YouTube → <em>Viral Clips</em><br>in One Click</h1>
+    <p>AI analisis transcript, temukan momen terbaik, auto-cut + subtitle + crop siap posting.</p>
+  </div>
+
+  <!-- Input card -->
+  <div class="card">
+    <div class="card-label">01 — URL & Strategi</div>
+    <div class="url-row">
+      <input class="url-input" id="ytUrl" placeholder="https://www.youtube.com/watch?v=..." />
+      <button class="btn btn-fire" id="analyzeBtn" onclick="startAnalyze()">⚡ Analyze</button>
+    </div>
+    <div class="pill-row" style="margin-bottom:16px">
+      <span class="pill-lbl">strategi:</span>
+      <button class="pill active" onclick="setPill(this,'viral','.pill')">🔥 Viral</button>
+      <button class="pill" onclick="setPill(this,'educational','.pill')">📚 Educational</button>
+      <button class="pill" onclick="setPill(this,'testimonial','.pill')">💬 Testimonial</button>
+      <button class="pill" onclick="setPill(this,'property','.pill')">🏠 Property</button>
+      <button class="pill" onclick="setPill(this,'highlights','.pill')">⭐ Highlights</button>
+    </div>
+
+    <!-- Output options -->
+    <div class="opt-row">
+      <div class="opt-group">
+        <span class="opt-label">Format:</span>
+        <button class="format-pill active" onclick="setFormat('16:9',this)">16:9</button>
+        <button class="format-pill" onclick="setFormat('9:16',this)">9:16 Reels</button>
+        <button class="format-pill" onclick="setFormat('1:1',this)">1:1 Feed</button>
+      </div>
+      <div class="opt-group" style="margin-left:auto">
+        <span class="opt-label">🔤 Subtitle Burn-in:</span>
+        <div class="toggle" id="subToggle" onclick="toggleSub()"></div>
+        <span style="font-size:11px;color:var(--muted)" id="subLabel">Off</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card progress-card" id="progCard">
+    <div class="prog-top">
+      <span class="prog-lbl" id="progLbl">Memulai...</span>
+      <span class="prog-pct" id="progPct">0%</span>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+  </div>
+
+  <!-- Video info -->
+  <div class="card" id="videoCard" style="display:none">
+    <div class="video-banner visible" id="videoBanner">
+      <img class="vthumb" id="vThumb" src="" alt="">
+      <div class="vmeta">
+        <h3 id="vTitle"></h3>
+        <div class="vtags" id="vTags"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clips -->
+  <div class="clips-section" id="clipsSection">
+    <div class="sec-hdr">
+      <div class="sec-title">🎬 Pilih Clips</div>
+      <div class="sec-actions">
+        <button class="btn btn-ghost btn-sm" onclick="selAll()">Semua</button>
+        <button class="btn btn-ghost btn-sm" onclick="desel()">Reset</button>
+        <button class="btn btn-cyan btn-sm" id="clipBtn" onclick="startClip()" disabled>✂️ Generate</button>
+      </div>
+    </div>
+    <div class="clips-grid" id="clipsGrid"></div>
+  </div>
+
+  <!-- Downloads -->
+  <div class="dl-section" id="dlSection">
+    <div class="dl-card">
+      <div class="dl-hdr">
+        <div>
+          <div class="dl-title">✅ Clips Siap!</div>
+          <div class="dl-sub" id="dlSub"></div>
+        </div>
+        <button class="btn btn-cyan btn-sm" onclick="dlAll()">⬇ Download Semua</button>
+      </div>
+      <div class="dl-grid" id="dlGrid"></div>
+    </div>
+  </div>
+
+</div><!-- /page-single -->
+
+<!-- ══ PAGE: BATCH ══ -->
+<div class="page" id="page-batch">
+
+  <div class="batch-hero">
+    <h2>📦 Batch Processing</h2>
+    <p>Masukkan hingga 10 URL YouTube — AI akan analisis semua secara berurutan dan generate clips overnight.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">URL List (max 10)</div>
+    <div class="url-list" id="urlList"></div>
+    <div class="add-url-row">
+      <button class="btn btn-ghost btn-sm" onclick="addUrlRow()">+ Tambah URL</button>
+      <span class="url-counter" id="urlCounter">0 / 10</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Batch Settings</div>
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center">
+      <div class="opt-group">
+        <span class="opt-label">Strategi:</span>
+        <div class="pill-row">
+          <button class="pill active" onclick="setPill(this,'viral','.batch-strat')">🔥 Viral</button>
+          <button class="pill batch-strat" onclick="setPill(this,'educational','.batch-strat')">📚 Edu</button>
+          <button class="pill batch-strat" onclick="setPill(this,'property','.batch-strat')">🏠 Property</button>
+          <button class="pill batch-strat" onclick="setPill(this,'highlights','.batch-strat')">⭐ Highlights</button>
+        </div>
+      </div>
+      <div class="opt-group" style="margin-left:auto">
+        <span class="opt-label">Format Output:</span>
+        <button class="format-pill" onclick="setBatchFormat('16:9',this)">16:9</button>
+        <button class="format-pill active" onclick="setBatchFormat('9:16',this)">9:16 Reels</button>
+        <button class="format-pill" onclick="setBatchFormat('1:1',this)">1:1</button>
+      </div>
+      <div class="opt-group">
+        <span class="opt-label">🔤 Subtitle:</span>
+        <div class="toggle on" id="batchSubToggle" onclick="toggleBatchSub()"></div>
+        <span style="font-size:11px;color:var(--muted)" id="batchSubLabel">On</span>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px">
+      <button class="btn btn-fire" id="batchAnalyzeBtn" onclick="startBatchAnalyze()">🚀 Analyze All</button>
+      <button class="btn btn-purple btn-sm" id="batchClipBtn" onclick="startBatchClip()" disabled>✂️ Generate All Clips</button>
+    </div>
+  </div>
+
+  <!-- Batch progress -->
+  <div class="card progress-card" id="batchProgCard">
+    <div class="prog-top">
+      <span class="prog-lbl" id="batchProgLbl">Memulai batch...</span>
+      <span class="prog-pct" id="batchProgPct">0%</span>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="batchProgFill"></div></div>
+  </div>
+
+  <!-- Batch results table -->
+  <div class="batch-results" id="batchResults">
+    <div class="sec-hdr">
+      <div class="sec-title">📋 Batch Status</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportBatchCSV()">↓ Export CSV</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="batch-table" id="batchTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Thumbnail</th>
+            <th>Title</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Clips</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="batchTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /page-batch -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ State ═══
+let currentStrategy = 'viral';
+let currentFormat   = '16:9';
+let burnSubs        = false;
+let currentJobId    = null;
+let clipIdeas       = [];
+let selectedClips   = new Set();
+let pollInterval    = null;
+
+let batchStrategy   = 'viral';
+let batchFormat     = '9:16';
+let batchBurnSubs   = true;
+let batchId         = null;
+let batchPollInt    = null;
+let urlRows         = [];
+
+// ═══ Init ═══
+window.onload = () => {
+  checkStatus();
+  initBatchRows();
+};
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+async function checkStatus() {
+  try {
+    const d = await (await fetch('/api/status')).json();
+    document.getElementById('dot').className = 'dot on';
+    document.getElementById('statusTxt').textContent =
+      `ok · ff:${d.deps.ffmpeg?'✓':'✗'} · yt:${d.deps['yt-dlp']?'✓':'✗'}`;
+  } catch {
+    document.getElementById('statusTxt').textContent = 'offline';
+  }
+}
+
+// ═══ Helpers ═══
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+function fmtSec(s) {
+  const m = Math.floor(s/60), sc = Math.round(s%60);
+  return `${m}:${String(sc).padStart(2,'0')}`;
+}
+function fmtBytes(b) {
+  return b > 1e6 ? (b/1e6).toFixed(1)+'MB' : (b/1e3).toFixed(0)+'KB';
+}
+function setPill(el, val, sel) {
+  document.querySelectorAll(sel).forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  if (sel === '.pill') currentStrategy = val;
+  else if (sel === '.batch-strat') batchStrategy = val;
+}
+function setFormat(f, el) {
+  document.querySelectorAll('.format-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentFormat = f;
+}
+function setBatchFormat(f, el) {
+  // only batch format pills
+  el.parentElement.querySelectorAll('.format-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  batchFormat = f;
+}
+function toggleSub() {
+  burnSubs = !burnSubs;
+  document.getElementById('subToggle').className = 'toggle' + (burnSubs?' on':'');
+  document.getElementById('subLabel').textContent = burnSubs ? 'On' : 'Off';
+}
+function toggleBatchSub() {
+  batchBurnSubs = !batchBurnSubs;
+  document.getElementById('batchSubToggle').className = 'toggle'+(batchBurnSubs?' on':'');
+  document.getElementById('batchSubLabel').textContent = batchBurnSubs ? 'On' : 'Off';
+}
+
+function setProg(pct, lbl, prefix='') {
+  document.getElementById(prefix+'progFill').style.width = pct+'%';
+  document.getElementById(prefix+'progPct').textContent = pct+'%';
+  if(lbl) document.getElementById(prefix+'progLbl').textContent = lbl;
+}
+
+const STATUS_LABELS = {
+  fetching_info: 'Mengambil info video...',
+  fetching_transcript: 'Mengambil transkrip...',
+  generating_ideas: '🤖 Claude menganalisis momen terbaik...',
+  ready_to_clip: 'Analisis selesai!',
+  downloading_video: '⬇ Mendownload video...',
+  cutting_clips: '✂️ Memotong & render clips...',
+  completed: '✅ Selesai!',
+  error: '❌ Error',
+  clip_error: '❌ Error saat clipping',
+};
+
+// ═══ SINGLE ═══
+
+async function startAnalyze() {
+  const url = document.getElementById('ytUrl').value.trim();
+  if (!url) { toast('⚠️ Masukkan URL YouTube'); return; }
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('clipsSection').classList.remove('visible');
+  document.getElementById('dlSection').classList.remove('visible');
+  document.getElementById('videoCard').style.display = 'none';
+  selectedClips.clear(); clipIdeas = [];
+
+  document.getElementById('progCard').classList.add('visible');
+  setProg(5, 'Mengambil info video...');
+
+  try {
+    const r = await fetch('/api/analyze', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ url, strategy: currentStrategy })
+    });
+    const { jobId } = await r.json();
+    currentJobId = jobId;
+    pollSingle(jobId);
+  } catch(e) {
+    toast('❌ Gagal connect ke server');
+    document.getElementById('analyzeBtn').disabled = false;
+  }
+}
+
+function pollSingle(jobId) {
+  if(pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    try {
+      const job = await (await fetch(`/api/job/${jobId}`)).json();
+      setProg(job.progress||0, STATUS_LABELS[job.status]||job.status);
+
+      if(job.videoInfo) showVideoInfo(job.videoInfo, job.hasTranscript);
+
+      if(job.status === 'ready_to_clip') {
+        clearInterval(pollInterval);
+        clipIdeas = job.clipIdeas || [];
+        renderClips(clipIdeas);
+        document.getElementById('progCard').classList.remove('visible');
+        document.getElementById('analyzeBtn').disabled = false;
+      }
+      if(job.status === 'error') {
+        clearInterval(pollInterval);
+        toast('❌ '+job.error);
+        document.getElementById('progCard').classList.remove('visible');
+        document.getElementById('analyzeBtn').disabled = false;
+      }
+      if(job.status === 'cutting_clips' || job.status === 'downloading_video') {
+        setProg(job.clipProgress||0, STATUS_LABELS[job.status]);
+      }
+      if(job.status === 'completed') {
+        clearInterval(pollInterval);
+        document.getElementById('progCard').classList.remove('visible');
+        renderDownloads(job.generatedClips, job.clipOptions);
+      }
+      if(job.status === 'clip_error') {
+        clearInterval(pollInterval);
+        toast('❌ '+job.error);
+        document.getElementById('progCard').classList.remove('visible');
+      }
+    } catch {}
+  }, 1500);
+}
+
+function showVideoInfo(info, hasTranscript) {
+  const dur = `${Math.floor(info.duration/60)}m ${info.duration%60}s`;
+  document.getElementById('vThumb').src = info.thumbnail||'';
+  document.getElementById('vTitle').textContent = info.title;
+  const tagsData = [
+    `⏱ ${dur}`, `👤 ${info.uploader||'Unknown'}`,
+    hasTranscript ? ['✓ Transcript','g'] : ['✗ No Transcript','']
+  ];
+  document.getElementById('vTags').innerHTML = tagsData.map(t =>
+    Array.isArray(t) ? `<span class="vtag ${t[1]}">${t[0]}</span>` : `<span class="vtag">${t}</span>`
+  ).join('');
+  document.getElementById('videoCard').style.display = 'block';
+}
+
+function renderClips(ideas) {
+  document.getElementById('clipsGrid').innerHTML = ideas.map((c,i) => {
+    const vs = c.viralScore||0;
+    const vsC = vs>=80?'vs-high':vs>=60?'vs-med':'vs-low';
+    const vsE = vs>=80?'🔥':vs>=60?'⚡':'📌';
+    return `
+    <div class="clip-card" id="cc-${i}" onclick="togClip(${i})">
+      <div class="clip-chk">✓</div>
+      <div class="clip-num">CLIP ${String(i+1).padStart(2,'0')} · ${fmtSec(c.start)} → ${fmtSec(c.end)}</div>
+      <div class="clip-title">${c.title}</div>
+      <div class="clip-hook">${c.hook}</div>
+      <div class="clip-meta">
+        <span class="ctag ctag-time">⏱ ${(c.duration||0).toFixed(0)}s</span>
+        <span class="ctag ctag-cat">${c.category}</span>
+        <span class="ctag ctag-vs ${vsC}">${vsE} ${vs}</span>
+      </div>
+      <div class="platforms">${(c.platforms||[]).map(p=>`<span class="ptag">${p}</span>`).join('')}</div>
+      <div class="caption-box">${c.caption||''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('clipsSection').classList.add('visible');
+}
+
+function togClip(i) {
+  if(selectedClips.has(i)) { selectedClips.delete(i); document.getElementById(`cc-${i}`).classList.remove('selected'); }
+  else { selectedClips.add(i); document.getElementById(`cc-${i}`).classList.add('selected'); }
+  document.getElementById('clipBtn').disabled = selectedClips.size===0;
+}
+function selAll() { clipIdeas.forEach((_,i) => { selectedClips.add(i); document.getElementById(`cc-${i}`)?.classList.add('selected'); }); document.getElementById('clipBtn').disabled = false; }
+function desel() { selectedClips.clear(); document.querySelectorAll('.clip-card').forEach(c=>c.classList.remove('selected')); document.getElementById('clipBtn').disabled=true; }
+
+async function startClip() {
+  if(!currentJobId||selectedClips.size===0) return;
+  const sel = [...selectedClips].map(i=>clipIdeas[i]);
+  document.getElementById('clipBtn').disabled = true;
+  document.getElementById('progCard').classList.add('visible');
+  setProg(0, '⬇ Mendownload video...');
+
+  await fetch('/api/clip', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ jobId:currentJobId, selectedClips:sel, burnSubtitles:burnSubs, format:currentFormat })
+  });
+  pollSingle(currentJobId);
+}
+
+function renderDownloads(clips, opts={}) {
+  const fmtLabel = opts.format==='9:16'?'9:16':opts.format==='1:1'?'1:1':'16:9';
+  const subLabel = opts.burnSubtitles ? '+ sub' : '';
+  document.getElementById('dlSub').textContent = `${clips.length} clips · ${fmtLabel} ${subLabel}`;
+  document.getElementById('dlGrid').innerHTML = clips.map(c=>`
+    <div class="dl-item">
+      <div class="dl-info">
+        <div class="dl-name">${c.title}</div>
+        <div class="dl-meta">
+          <span>${fmtBytes(c.fileSize)}</span>
+          <span>${(c.duration||0).toFixed(0)}s</span>
+          ${c.format==='9:16'?'<span class="dl-badge v">9:16</span>':''}
+          ${c.burnSubtitles?'<span class="dl-badge s">sub</span>':''}
+        </div>
+      </div>
+      <a class="btn-dl" href="${c.downloadUrl}" download>↓</a>
+    </div>`).join('');
+  document.getElementById('dlSection').classList.add('visible');
+  toast(`✅ ${clips.length} clip siap download!`);
+}
+
+function dlAll() {
+  document.querySelectorAll('.btn-dl').forEach((btn,i)=>setTimeout(()=>btn.click(),i*300));
+}
+
+// ═══ BATCH ═══
+
+function initBatchRows() {
+  // Start with 3 empty rows
+  [0,1,2].forEach(()=>addUrlRow());
+}
+
+function addUrlRow() {
+  if(urlRows.length >= 10) { toast('Max 10 URL'); return; }
+  const id = Date.now();
+  urlRows.push(id);
+  const list = document.getElementById('urlList');
+  const div = document.createElement('div');
+  div.className = 'url-entry'; div.id = `row-${id}`;
+  div.innerHTML = `
+    <span class="url-num">${urlRows.length}</span>
+    <input class="url-input" placeholder="https://www.youtube.com/watch?v=..." data-id="${id}" />
+    <button class="btn-rm" onclick="rmUrl(${id})">×</button>`;
+  list.appendChild(div);
+  updateCounter();
+}
+
+function rmUrl(id) {
+  if(urlRows.length<=1) return;
+  urlRows = urlRows.filter(r=>r!==id);
+  document.getElementById(`row-${id}`)?.remove();
+  // Renumber
+  document.querySelectorAll('.url-num').forEach((el,i)=>el.textContent=i+1);
+  updateCounter();
+}
+
+function updateCounter() {
+  document.getElementById('urlCounter').textContent = `${urlRows.length} / 10`;
+}
+
+function getUrlList() {
+  return urlRows.map(id => {
+    const inp = document.querySelector(`[data-id="${id}"]`);
+    return inp ? inp.value.trim() : '';
+  }).filter(Boolean);
+}
+
+async function startBatchAnalyze() {
+  const urls = getUrlList();
+  if(urls.length===0) { toast('⚠️ Masukkan minimal 1 URL'); return; }
+
+  document.getElementById('batchAnalyzeBtn').disabled = true;
+  document.getElementById('batchProgCard').classList.add('visible');
+  setProg(0,'Memulai batch analyze...','batch');
+  document.getElementById('batchResults').classList.add('visible');
+
+  try {
+    const r = await fetch('/api/batch/analyze', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ urls, strategy: batchStrategy })
+    });
+    const d = await r.json();
+    batchId = d.batchId;
+    pollBatch();
+  } catch(e) {
+    toast('❌ '+e.message);
+    document.getElementById('batchAnalyzeBtn').disabled = false;
+  }
+}
+
+function pollBatch() {
+  if(batchPollInt) clearInterval(batchPollInt);
+  batchPollInt = setInterval(async () => {
+    if(!batchId) return;
+    const batch = await (await fetch(`/api/batch/${batchId}`)).json();
+
+    const pct = Math.round((batch.completedCount||0)/batch.totalCount*100);
+    setProg(pct, `Menganalisis ${batch.completedCount||0}/${batch.totalCount} video...`, 'batch');
+
+    renderBatchTable(batch);
+
+    if(batch.status==='all_analyzed') {
+      clearInterval(batchPollInt);
+      document.getElementById('batchProgCard').classList.remove('visible');
+      document.getElementById('batchAnalyzeBtn').disabled = false;
+      document.getElementById('batchClipBtn').disabled = false;
+      toast(`✅ ${batch.totalCount} video siap di-clip!`);
+    }
+    if(batch.status==='completed') {
+      clearInterval(batchPollInt);
+      document.getElementById('batchProgCard').classList.remove('visible');
+      toast('🎉 Batch clipping selesai!');
+    }
+  }, 2000);
+}
+
+function renderBatchTable(batch) {
+  const tbody = document.getElementById('batchTbody');
+  tbody.innerHTML = batch.urls.map((e,i)=>{
+    const stMap = {
+      pending:'sb-pending', analyzing:'sb-analyzing', analyzed:'sb-analyzed',
+      clipping:'sb-clipping', clipped:'sb-clipped', error:'sb-error'
+    };
+    const stLabel = { pending:'Pending', analyzing:'Analyzing...', analyzed:'Ready', clipping:'Clipping...', clipped:'Done ✓', error:'Error' };
+    const cls = stMap[e.status]||'sb-pending';
+    const prog = e.clipProgress||0;
+    const progBar = e.status==='clipping' ?
+      `<div class="mini-prog"><div class="mini-prog-fill" style="width:${prog}%"></div></div>` : '';
+    const dlBtn = e.status==='clipped'&&e.jobId ?
+      `<button class="btn btn-ghost btn-sm" onclick="showJobClips('${e.jobId}')">↓ DL</button>` : '–';
+    return `<tr>
+      <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px">${i+1}</td>
+      <td>${e.thumbnail?`<img class="batch-thumb" src="${e.thumbnail}" alt="">`:'–'}</td>
+      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">${e.title||e.url.slice(0,40)+'...'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${e.duration?Math.floor(e.duration/60)+'m':'–'}</td>
+      <td><span class="status-badge ${cls}">${stLabel[e.status]||e.status}</span>${progBar}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--cyan)">${e.clipCount||'–'}</td>
+      <td>${dlBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function showJobClips(jobId) {
+  const job = await (await fetch(`/api/job/${jobId}`)).json();
+  if(!job.generatedClips||job.generatedClips.length===0) { toast('No clips'); return; }
+  // Switch to single page and show downloads
+  showPage('single', document.querySelector('.nav-tab'));
+  document.querySelectorAll('.nav-tab')[0].classList.add('active');
+  renderDownloads(job.generatedClips, job.clipOptions||{});
+}
+
+async function startBatchClip() {
+  if(!batchId) return;
+  document.getElementById('batchClipBtn').disabled = true;
+  document.getElementById('batchProgCard').classList.add('visible');
+  setProg(0,'Memulai batch clipping...','batch');
+
+  await fetch(`/api/batch/${batchId}/clip`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ format: batchFormat, burnSubtitles: batchBurnSubs })
+  });
+  pollBatch();
+}
+
+function exportBatchCSV() {
+  if(!batchId) return;
+  fetch(`/api/batch/${batchId}`)
+    .then(r=>r.json())
+    .then(batch=>{
+      const rows = [['#','URL','Title','Duration','Status','Clips']];
+      batch.urls.forEach((e,i)=>{
+        rows.push([i+1, e.url, e.title||'', e.duration||'', e.status, e.clipCount||0]);
+      });
+      const csv = rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+      const blob = new Blob([csv],{type:'text/csv'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `batch-${batchId}.csv`; a.click();
+    });
+}
+</script>
+</body>
+</html>

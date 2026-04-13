@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.example
+dist/
+logs/
+npm-debug.log*
+.vscode
+.kilo
+.claude
