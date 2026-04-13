@@ -48,7 +48,7 @@ async function checkDeps() {
 // ─────────────────────────────────────────────
 async function getVideoInfo(url) {
   const { stdout } = await execAsync(
-    `yt-dlp --js-runtimes node --dump-json --no-playlist --cookies cookies.txt "${url}"`,
+    `yt-dlp --dump-json --no-playlist --cookies cookies.txt --extractor-args youtube:player_skip=js "${url}"`,
     { timeout: 30000 }
   );
   return JSON.parse(stdout);
@@ -58,7 +58,7 @@ async function downloadSubtitles(url, jobId) {
   const outPath = path.join("temp", jobId);
   try {
     await execAsync(
-      `yt-dlp --js-runtimes node --write-auto-sub --skip-download --sub-lang id,en --convert-subs srt --cookies cookies.txt -o "${outPath}" "${url}"`,
+      `yt-dlp --write-auto-sub --skip-download --sub-lang id,en --convert-subs srt --cookies cookies.txt --extractor-args youtube:player_skip=js -o "${outPath}" "${url}"`,
       { timeout: 60000 }
     );
     const files = fs
@@ -210,7 +210,7 @@ async function cutClip(videoPath, start, end, outputPath, options = {}) {
 async function downloadVideo(url, jobId) {
   const outPath = path.join("temp", `${jobId}_full.mp4`);
   await execAsync(
-    `yt-dlp --js-runtimes node -f "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]" --merge-output-format mp4 --cookies cookies.txt -o "${outPath}" "${url}"`,
+    `yt-dlp -f "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]" --merge-output-format mp4 --cookies cookies.txt --extractor-args youtube:player_skip=js -o "${outPath}" "${url}"`,
     { timeout: 300000 }
   );
   return outPath;
