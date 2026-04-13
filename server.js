@@ -5,7 +5,12 @@ const fs = require("fs");
 const { exec } = require("child_process");
 const { promisify } = require("util");
 const Anthropic = require("@anthropic-ai/sdk");
-const { v4: uuidv4 } = require("uuid");
+
+// Dynamic import for uuid (ES Module compatibility)
+const getUuidv4 = async () => {
+  const { v4 } = await import('uuid');
+  return v4().slice(0, 8);
+};
 
 const execAsync = promisify(exec);
 const app = express();
@@ -283,7 +288,7 @@ async function processBatchAnalyze(batchId) {
     batch.currentIndex = i;
 
     try {
-      const jobId = uuidv4().slice(0, 8);
+      const jobId = await getUuidv4();
       jobs[jobId] = {
         status: "fetching_info",
         url: entry.url,
@@ -348,7 +353,7 @@ app.post("/api/analyze", async (req, res) => {
   const { url, strategy = "viral" } = req.body;
   if (!url) return res.status(400).json({ error: "URL required" });
 
-  const jobId = uuidv4().slice(0, 8);
+  const jobId = await getUuidv4();
   jobs[jobId] = { status: "analyzing", url, strategy, progress: 0, clipIdeas: [], generatedClips: [] };
   res.json({ jobId });
 
@@ -427,7 +432,7 @@ app.post("/api/batch/analyze", async (req, res) => {
   if (urls.length > 10)
     return res.status(400).json({ error: "Max 10 URLs per batch" });
 
-  const batchId = uuidv4().slice(0, 8);
+  const batchId = await getUuidv4();
   batchJobs[batchId] = {
     batchId,
     status: "queued",
